@@ -235,7 +235,7 @@ if __name__ == "__main__":
     from data_generation import PerturbedDistribution
     # Set specific parameters for reproducibility
     params = {'perturb_level_YU': 1, 'perturb_level_YZ': 0.75, 'p': 1}
-    dist = PerturbedDistribution(**params,seed=50)
+    dist = PerturbedDistribution(**params,seed=50                                                                )
 
     # Generate train and test data using the distribution's sample method
     train = dist.sample(n=200)
@@ -246,7 +246,7 @@ if __name__ == "__main__":
     van.fit(train['X'], train['Y'], train['Z'], train['U'])
     van_train_loss = van.history['loss']
     van_test = van.eval(test['X'], test['Y'], test['Z'], test['U'])
-    print("VanillaClassifier train loss:", van_train_loss)
+    print("VanillaClassifier train loss:", van_train_loss)    
     print("VanillaClassifier test:", van_test)
 
     # Train and evaluate StrategicClassifier

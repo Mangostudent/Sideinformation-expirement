@@ -78,14 +78,33 @@ class Experiment:
 
     def save_csv(self, path: str = 'experiment_results.csv'):
         df = self.get_results_df()
+        # Reorder columns: p, correlations, then rest
+        col_order = []
+        # Always put 'p' first if present
+        if 'p' in df.columns:
+            col_order.append('p')
+        # Then correlations if present
+        for c in ['corr_YZ', 'corr_YU']:
+            if c in df.columns: 
+                col_order.append(c)
+        # Then other parameter columns (excluding p and correlations)
+        param_cols = [c for c in ['perturb_level_YU', 'perturb_level_YZ', 'train_n', 'test_n'] if c in df.columns]
+        col_order.extend(param_cols)
+        # Then all other columns (results, weights, etc.)
+        rest = [c for c in df.columns if c not in col_order]
+        col_order.extend(rest)
+        # Reorder and sort by p, then correlations, then params
+        df = df[col_order]
+        sort_keys = [k for k in ['p', 'corr_YZ', 'corr_YU', 'perturb_level_YU', 'perturb_level_YZ', 'train_n', 'test_n'] if k in df.columns]
+        df = df.sort_values(by=sort_keys).reset_index(drop=True)
         df.to_csv(path, index=False)
         return path
 
 
 if __name__ == "__main__":
     
-    param_space = {'perturb_level_YU': [-3,-2,-1,0,1,2,3], 'perturb_level_YZ': [-3,-2,-1,0,1,2,3], 'p': [0,0.25,0.5,0.75,1], 'train_n': [3500], 'test_n': [500]}
-    exp = Experiment(param_space, seed=42)
+    param_space = {'perturb_level_YU': [-3,-2,-1,0,1,2,3], 'perturb_level_YZ': [-3,-2,-1,0,1,2,3], 'p': [0,0.25,0.5,0.75,1], 'train_n': [2500], 'test_n': [500]}
+    exp = Experiment(param_space, seed=50)
 
     exp.run_sweep()
     exp.save_csv()
