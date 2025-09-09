@@ -99,8 +99,8 @@ class PerturbedDistribution(BaseDistribution):
     perturb_level_YU and perturb_level_YZ may be integers in -3..3 or named levels mapping to that.
     """
 
-    def __init__(self, perturb_level_YU=0, perturb_level_YZ=0, p: float = 1.0):
-        super().__init__()
+    def __init__(self, perturb_level_YU=0, perturb_level_YZ=0, p: float = 1.0, seed: int=10):
+        super().__init__(seed=seed)
         self.p = float(p)
         self.S_YU = int(perturb_level_YU)
         self.S_YZ = int(perturb_level_YZ)
@@ -217,34 +217,3 @@ class PerturbedDistribution(BaseDistribution):
         table2 = perturb_pair(table1, 'Y', 'Z', self.S_YZ)
         return self._table_to_pmf(table2)
 
-
-# Example usage for testing
-
-
-# Example usage for testing PerturbedDistribution with multiple parameter values
-
-if __name__ == "__main__":
-    param_sets = [
-        {'perturb_level_YU': 0, 'perturb_level_YZ': 0, 'p': 1.0},
-        {'perturb_level_YU': 2, 'perturb_level_YZ': -2, 'p': 0.8},
-        {'perturb_level_YU': -3, 'perturb_level_YZ': 3, 'p': 0.5},
-    ]
-    for i, params in enumerate(param_sets):
-        print(f"\n--- PerturbedDistribution Example {i+1} ---")
-        pdist = PerturbedDistribution(**params)
-        print(f"Parameters: {params}")
-        print("PMF:", pdist.pmf)
-        print("mus:")
-        for k, mu in pdist.mus.items():
-            print(f"  {k}: {mu}")
-        print("sigmas:")
-        for k, sigma in pdist.sigmas.items():
-            print(f"  {k}:\n{sigma}")
-        corr_YZ, corr_YU = pdist.compute_corr()
-        print("Correlation E[YZ]:", corr_YZ)
-        print("Correlation E[YU]:", corr_YU)
-        # Show a few samples
-        samples = pdist.sample(n=5)
-        print("Sampled points (first 5):")
-        for j in range(5):
-            print(f"  X: {samples['X'][j]}, Y: {samples['Y'][j]}, Z: {samples['Z'][j]}, U: {samples['U'][j]}")

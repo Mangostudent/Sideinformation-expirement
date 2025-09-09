@@ -226,8 +226,8 @@ from data_generation import PerturbedDistribution
 if __name__ == "__main__":
     from data_generation import PerturbedDistribution
     # Set specific parameters for reproducibility
-    params = {'perturb_level_YU': 1, 'perturb_level_YZ': -1, 'p': 0.8}
-    dist = PerturbedDistribution(**params)
+    params = {'perturb_level_YU': 1, 'perturb_level_YZ': 0, 'p': 0.2}
+    dist = PerturbedDistribution(**params,seed=50)
 
     # Generate train and test data using the distribution's sample method
     train = dist.sample(n=200)
