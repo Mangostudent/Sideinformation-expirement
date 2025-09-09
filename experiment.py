@@ -62,11 +62,15 @@ class Experiment:
     def run_sweep(self, model_hparams=None):
         keys = list(self.param_space.keys())
         values = [self.param_space[k] for k in keys]
+        combos = list(itertools.product(*values))
+        total = len(combos)
         results = []
-        for combo in itertools.product(*values):
+        for idx, combo in enumerate(combos, 1):
+            print(f"Sweep progress: {idx}/{total} ({idx/total:.1%})", end='\r')
             params = dict(zip(keys, combo))
             res = self.single_run(params, model_hparams=model_hparams)
             results.append(res)
+        print()  # for clean newline after sweep
         return results
 
     def get_results_df(self):
@@ -85,7 +89,7 @@ if __name__ == "__main__":
 
     exp.run_sweep()
     exp.save_csv()
-    
+
 
 
 

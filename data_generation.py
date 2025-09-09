@@ -67,33 +67,7 @@ class BaseDistribution:
 
 class PerturbedDistribution(BaseDistribution):
 
-    def sample(self, n=100):
-        """Sample (X, Y, Z, U) from the perturbed distribution using internal RNG.
-        Args:
-            n: number of samples
-        Returns:
-            dict with keys 'X', 'Y', 'Z', 'U'
-        """
-        idx = self.rng.choice(8, size=n, p=self.pmf)
-        X = np.zeros((n, 2), dtype=float)
-        Y = np.zeros(n, dtype=int)
-        Z = np.zeros(n, dtype=float)
-        U = np.zeros(n, dtype=int)
-        keys = list(self.COMBINATIONS)
-        for i, k in enumerate(keys):
-            mask = idx == i
-            cnt = mask.sum()
-            if cnt == 0:
-                continue
-            mu = self.mus[k]
-            Sigma = self.sigmas[k]
-            X[mask] = self.rng.multivariate_normal(mu, Sigma, size=cnt)
-            Y[mask] = k[0]
-            Z[mask] = k[1]
-            U[mask] = k[2]
-        vis = self.rng.rand(n) < self.p
-        Z_masked = np.where(vis, Z, np.nan)
-        return {"X": X, "Y": Y, "Z": Z_masked, "U": U}
+
     """Perturbs correlations between (Y,U) and (Y,Z) using the algorithm in instructions.
 
     perturb_level_YU and perturb_level_YZ may be integers in -3..3 or named levels mapping to that.
@@ -129,7 +103,7 @@ class PerturbedDistribution(BaseDistribution):
     def _apply_perturbations(self, pmf):
         table = self._joint_to_table(pmf)
 
-        def perturb_pair(table, A, B, S):
+        def _perturb_pair(table, A, B, S):
             # A and B are 'Y','Z' or 'U'
             # compute marginal p_AB(a,b)
             states = list(BaseDistribution.COMBINATIONS)
@@ -213,7 +187,39 @@ class PerturbedDistribution(BaseDistribution):
             return new_table
 
         # apply YU then YZ sequentially
-        table1 = perturb_pair(table, 'Y', 'U', self.S_YU)
-        table2 = perturb_pair(table1, 'Y', 'Z', self.S_YZ)
+        table1 = _perturb_pair(table, 'Y', 'U', self.S_YU)
+        table2 = _perturb_pair(table1, 'Y', 'Z', self.S_YZ)
         return self._table_to_pmf(table2)
+    
+    def sample(self, n=100):
+        """Sample (X, Y, Z, U) from the perturbed distribution using internal RNG.
+        Args:
+            n: number of samples
+        Returns:
+            dict with keys 'X', 'Y', 'Z', 'U'
+        """
+        idx = self.rng.choice(8, size=n, p=self.pmf)
+        X = np.zeros((n, 2), dtype=float)
+        Y = np.zeros(n, dtype=int)
+        Z = np.zeros(n, dtype=float)
+        U = np.zeros(n, dtype=int)
+        keys = list(self.COMBINATIONS)
+        for i, k in enumerate(keys):
+            mask = idx == i
+            cnt = mask.sum()
+            if cnt == 0:
+                continue
+            mu = self.mus[k]
+            Sigma = self.sigmas[k]
+            X[mask] = self.rng.multivariate_normal(mu, Sigma, size=cnt)
+            Y[mask] = k[0]
+            Z[mask] = k[1]
+            U[mask] = k[2]
+        vis = self.rng.rand(n) < self.p
+        Z_masked = np.where(vis, Z, np.nan)
+        return {"X": X, "Y": Y, "Z": Z_masked, "U": U}
 
+prob = PerturbedDistribution(-2,2,0.5,seed=60)
+
+# print(prob.corr_YZ, prob.corr_YU)
+# print(prob.sample(5))
